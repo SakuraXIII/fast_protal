@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import socket
 from pathlib import Path
 import mimetypes
 from flask import (
@@ -12,15 +13,17 @@ from flask import (
     send_file,
 )
 import logging
+
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.config["MAX_CONTENT_PATH"] = 1024 * 1024 * 1024 * 5  # 指定最大文件大小，单位为字节
 # Flask 的 Session 是通过加密后放到 Cookie 中的，
 # 所以在使用 Session 模块时就一定要配置 SECRET_KEY 全局宏用于加密。
 app.config["SECRET_KEY"] = "123456"
-log = logging.getLogger('werkzeug')
+log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
 base_path = "F:\\fast_protal"
+
 
 @app.after_request
 def add_header(r):
@@ -41,7 +44,7 @@ def index():
         else:
             path = Path(name)
         print(path)
-        
+
         if not path.exists() or not (len(str(path)) >= len(base_path)):
             raise KeyError()
     except KeyError:
@@ -88,7 +91,7 @@ def upload_file():
             else:
                 print(f"File {file.filename} has been uploaded successfully")
         else:
-            print(f"文件{file.filename}-{current_chunk + 1}/{total_chunks}")
+            print(f"文件 {file.filename}-{current_chunk + 1}/{total_chunks}")
         return {"result": "上传成功"}, 200
 
     except KeyError as ke:
@@ -105,13 +108,12 @@ def upload_file():
 
 
 if __name__ == "__main__":
-    import socket
-
     # 函数 gethostname() 返回当前正在执行 Python 的系统主机名
     res = socket.gethostbyname(socket.gethostname())
-    print(res)
+    print("http://127.0.0.1:5000/")
+    print("http://" + res + ":5000/")
     if Path(base_path).exists():
         print(f"监视目录为: {base_path}")
-        app.run(debug=False, host="0.0.0.0")
+        app.run(debug=False, host="0.0.0.0")  # 默认端口 port=5000
     else:
         raise FileNotFoundError(f"没有该目录: {base_path}")
