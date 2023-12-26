@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from pathlib import Path
-from re import T
 from flask import (
     Flask,
     request,
-    Response,
     render_template,
     redirect,
     url_for,
     session,
     send_file,
-    send_from_directory,
 )
-from flask.scaffold import F
 import mimetypes
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
