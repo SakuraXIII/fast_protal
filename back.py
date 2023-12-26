@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from pathlib import Path
-from flask import Flask, request, Response, render_template, redirect, url_for, session
+from re import T
+from flask import Flask, request, Response, render_template, redirect, url_for, session,send_file,send_from_directory
+from flask.scaffold import F
+import mimetypes
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['MAX_CONTENT_PATH'] = 1024 * 1024 * 1024 * 5  # 指定最大文件大小，单位为字节
@@ -50,13 +53,8 @@ def index():
 
 @app.route("/file?<string:path>")
 def get_file(path):
-    file_path = Path(path)
-    suffix = file_path.suffix
-    if suffix in ['.jpg', '.jpeg', '.png', '.gif']:
-        fmt = suffix.split('.')[1]
-        return file_path.read_bytes(), 302, [("Content-Type", f"image/{fmt}")]
-    else:
-        return file_path.read_bytes(), 302
+    mime_type, _ = mimetypes.guess_type(path)
+    return send_file(path,mimetype=mime_type)
 
 
 @app.route("/upload", methods=['POST'])
@@ -81,10 +79,13 @@ def upload_file():
                 print(f'File {file.filename} has been uploaded successfully')
         else:
             print(f'文件{file.filename}-{current_chunk + 1}/{total_chunks}')
-
         return {'result': '上传成功'}, 200
 
-    except OSError:
+    except KeyError as ke:
+        print(ke)
+        return {'result': 'error'}, 400
+    except OSError as oe:
+        print(oe)
         save_path.unlink() if save_path.exists() else ...
         return {'result': '文件保存读写错误'}, 400
     except Exception as e:

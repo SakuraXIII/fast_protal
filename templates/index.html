@@ -108,10 +108,12 @@
         </div>`,
             previewsContainer: 'div.preview-container',
             init: function () {
+                var start = 0
                 console.log('init')
                 document.querySelector('#submit_file').addEventListener('click', () => {
                     if (this.getAcceptedFiles().length !== 0) {
                         this.processQueue();
+                        start = performance.now()
                     }
                 })
                 this.on('addedfile', function (file) {
@@ -129,42 +131,38 @@
                         document.querySelector('#submit_file').setAttribute('disabled', true)
                     }
                 })
-                this.on('totaluploadprogress', function (progress, totalBytes, sentBytes) {
-                    // 所有文件的整体上载进度
-                    var mm = 0;
-                    var byte = 0;
-                    var tt = setInterval(function () {
-                        mm++
-                        var remain
-                        var speed
-                        var totalKb = totalBytes / 1024
-                        var sentKb = sentBytes / 1024
-                        var totalMb = totalBytes / 1024 / 1024
-                        var sentMb = sentBytes / 1024 / 1024
-                        if (totalKb <= 1024) {
-                            speed = (parseFloat(sentBytes - totalBytes) / (1024) / mm).toFixed(2) + " KB/s"
-                            remain = (totalKb - sentKb) / parseFloat(speed)
-                        } else {
-                            speed = (parseFloat(sentBytes - totalBytes) / (1024 * 1024) / mm).toFixed(2) + " MB/s"
-                            remain = (totalMb - sentMb) / parseFloat(speed)
-                        }
-                        document.querySelector("span.upload-speed").innerHTML = speed;
-                        document.querySelector("span.upload-remain").innerHTML = time_format(parseInt(remain))
-                    }, 1000)
-                    if (sentBytes >= totalBytes) {
-                        clearInterval(tt);
-                        document.querySelector("span.upload-remain").innerHTML = "0:00:00s";
-                        document.querySelector("span.upload-speed").innerHTML = "0 KB/s";
-                    }
-
-                })
-                this.on('uploadprogress', function (file, progress, size) {
+                this.on('uploadprogress', function (file, progress, sentSize) {
+                    var duration = (performance.now() - start) / 1000 // s
                     document.querySelector('.progress-outside').style.opacity = 100
                     document.querySelector('.progress-inner').style.width = progress + "%"
                     document.querySelector('.progress-inner').innerHTML = parseInt(progress) + "%"
+                    var remain
+                    var speed
+                    var sentKb = sentSize / 1024
+                    var totalKb = file.size / 1024
+                    var sentMb = sentKb / 1024
+                    var totalMb = totalKb / 1024
+                    if (sentKb <= 1024) {
+                        speed = (parseFloat(sentKb) / duration).toFixed(2) + " KB/s"
+                        remain = (totalKb - sentKb) / parseFloat(speed)
+                    } else {
+                        speed = (parseFloat(sentMb) / duration).toFixed(2) + " MB/s"
+                        remain = (totalMb - sentMb) / parseFloat(speed)
+                    }
+                    document.querySelector("span.upload-speed").innerHTML = speed ?? "0 KB/s";
+                    document.querySelector("span.upload-remain").innerHTML = time_format(parseInt(remain))
+                    if (progress >= 100) {
+                        console.log('finished')
+                        document.querySelector("span.upload-remain").innerHTML = "0:00:00s";
+                        document.querySelector("span.upload-speed").innerHTML = "0 KB/s";
+                    }
                 })
                 this.on('success', function (file, callback) {
                     this.removeFile(file);
+                    if (this.getQueuedFiles().length != 0) {
+                        this.processQueue()
+                        start = performance.now()
+                    }
                 })
                 this.on('queuecomplete', () => {
                     // 队列中的所有文件上传完成时。
@@ -177,6 +175,7 @@
                     document.querySelector('.progress-inner').style.width = 100 + "%"
                     document.querySelector('.progress-inner').innerHTML = 'error!'
                     this.removeAllFiles() // true 删除所有文件，包括正在上传的文件
+                    setTimeout(() => { location.reload() }, 2000)
                 });
             }
         })
