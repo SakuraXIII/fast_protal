@@ -101,6 +101,6 @@ if __name__ == '__main__':
     print(res)
     if Path(base_path).exists():
         print(f'监视目录为: {base_path}')
-        app.run(debug=False, host="0.0.0.0")
+        app.run(debug=True, host="0.0.0.0")
     else:
         raise FileNotFoundError(f'没有该目录: {base_path}')
