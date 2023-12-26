@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 from re import T
-from flask import Flask, request, Response, render_template, redirect, url_for, session,send_file,send_from_directory
+from flask import Flask, request, Response, render_template, redirect, url_for, session, send_file, send_from_directory
 from flask.scaffold import F
 import mimetypes
 
@@ -54,7 +54,7 @@ def index():
 @app.route("/file?<string:path>")
 def get_file(path):
     mime_type, _ = mimetypes.guess_type(path)
-    return send_file(path,mimetype=mime_type)
+    return send_file(path, mimetype=mime_type)
 
 
 @app.route("/upload", methods=['POST'])
