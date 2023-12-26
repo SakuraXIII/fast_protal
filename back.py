@@ -80,7 +80,7 @@ def upload_file():
             else:
                 print(f'File {file.filename} has been uploaded successfully')
         else:
-            print(f'文件{file.filename}的第个{current_chunk + 1}Chunk传输完成')
+            print(f'文件{file.filename}-{current_chunk + 1}/{total_chunks}')
 
         return {'result': '上传成功'}, 200
 
