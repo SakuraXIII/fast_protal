@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from pathlib import Path
+import mimetypes
 from flask import (
     Flask,
     request,
@@ -10,15 +11,16 @@ from flask import (
     session,
     send_file,
 )
-import mimetypes
-
+import logging
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.config["MAX_CONTENT_PATH"] = 1024 * 1024 * 1024 * 5  # 指定最大文件大小，单位为字节
 # Flask 的 Session 是通过加密后放到 Cookie 中的，
 # 所以在使用 Session 模块时就一定要配置 SECRET_KEY 全局宏用于加密。
 app.config["SECRET_KEY"] = "123456"
-base_path = r"F:\\fast_protal"
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
+base_path = "F:\\fast_protal"
 
 @app.after_request
 def add_header(r):
@@ -39,7 +41,8 @@ def index():
         else:
             path = Path(name)
         print(path)
-        if not path.exists() or str(path).startswith(base_path):
+        
+        if not path.exists() or not (len(str(path)) >= len(base_path)):
             raise KeyError()
     except KeyError:
         name = ""
@@ -109,6 +112,6 @@ if __name__ == "__main__":
     print(res)
     if Path(base_path).exists():
         print(f"监视目录为: {base_path}")
-        app.run(debug=True, host="0.0.0.0")
+        app.run(debug=False, host="0.0.0.0")
     else:
         raise FileNotFoundError(f"没有该目录: {base_path}")
