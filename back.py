@@ -3,6 +3,7 @@
 import socket
 from pathlib import Path
 import mimetypes
+import sys
 from flask import (
     Flask,
     request,
@@ -22,7 +23,7 @@ app.config["SECRET_KEY"] = "123456"
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
-base_path = "F:\\fast_protal"
+base_path = "F:\\fast_porotal"
 
 
 @app.after_request
