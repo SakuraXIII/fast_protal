@@ -23,7 +23,7 @@ app.config["SECRET_KEY"] = "123456"
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
-base_path = "F:\\fast_porotal"
+base_path = "F:\\fast_protal"
 
 
 @app.after_request
