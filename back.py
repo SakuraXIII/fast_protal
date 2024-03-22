@@ -110,6 +110,14 @@ def upload_file():
 
 if __name__ == "__main__":
     # 函数 gethostname() 返回当前正在执行 Python 的系统主机名
+    cmd_params = sys.argv[1:]
+    if len(cmd_params) > 0:
+        if (argv_path := Path(cmd_params[0])).exists():
+            if argv_path.is_dir():
+                base_path = str(argv_path)
+            else:
+                base_path = str(argv_path.parent)
+
     res = socket.gethostbyname(socket.gethostname())
     print("http://127.0.0.1:5000/")
     print("http://" + res + ":5000/")
