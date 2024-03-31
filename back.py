@@ -25,6 +25,8 @@ log.setLevel(logging.ERROR)
 
 base_path = "F:\\fast_protal"
 
+filter_files = ["desktop.ini"]
+
 
 @app.after_request
 def add_header(r):
@@ -58,6 +60,7 @@ def index():
 
     if Path(path).is_dir():
         files = Path(path).iterdir()
+        files = [file for file in files if file.name not in filter_files]
         sorted_file = sorted(files, key=lambda f: f.is_dir(), reverse=True)
         return render_template("index.html", files=sorted_file)
     if Path(path).is_file():
@@ -69,6 +72,18 @@ def index():
 def get_file(path):
     mime_type, _ = mimetypes.guess_type(path)
     return send_file(path, mimetype=mime_type)
+
+
+@app.route("/del")
+def del_file():
+    path = Path(request.args.get("path"))
+    if path.exists():
+        if path.is_file():
+            path.unlink()
+        elif path.is_dir():
+            path.rmdir()
+
+    return redirect(url_for("index", name=str(path.parent)), 301)
 
 
 @app.route("/upload", methods=["POST"])
@@ -123,6 +138,6 @@ if __name__ == "__main__":
     print("http://" + res + ":5000/")
     if Path(base_path).exists():
         print(f"监视目录为: {base_path}")
-        app.run(debug=False, host="0.0.0.0")  # 默认端口 port=5000
+        app.run(debug=True, host="0.0.0.0")  # 默认端口 port=5000
     else:
         raise FileNotFoundError(f"没有该目录: {base_path}")
