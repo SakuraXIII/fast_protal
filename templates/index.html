@@ -50,13 +50,13 @@
         {% for file in files %}
         <li class="list-group-item">
           <a href=" /?name={{file}}">{{file.name}}</a>
-          {% if file.is_file()%} &nbsp;&nbsp;&nbsp; {% with
+          {% if file.is_file()%} &nbsp;&nbsp;{% with
           size=(file.stat().st_size / 1024) %}
           <span
             >{{size|round(2)|string +'KB' if size < 1024 else (size /
             1024)|round(2)|string +'MB'}}</span
           >
-          {% endwith %} &nbsp;&nbsp;&nbsp;
+          {% endwith %} &nbsp;&nbsp;
           <a class="badge text-bg-primary" href="/?name={{file}}" download
             >下载</a
           >
