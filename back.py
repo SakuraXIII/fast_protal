@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import socket
 from pathlib import Path
+import shutil
 import mimetypes
 import sys
 from flask import (
@@ -81,7 +82,7 @@ def del_file():
         if path.is_file():
             path.unlink()
         elif path.is_dir():
-            path.rmdir()
+            shutil.rmtree(path)
 
     return redirect(url_for("index", name=str(path.parent)), 301)
 
