@@ -4,6 +4,7 @@ import socket
 from pathlib import Path
 import shutil
 import mimetypes
+import subprocess
 import sys
 from flask import (
     Flask,
@@ -87,6 +88,25 @@ def del_file():
     return redirect(url_for("index", name=str(path.parent)), 301)
 
 
+@app.route("/cmd")
+def exec_cmd():
+    path = Path(request.args.get("c"))
+    print(path)
+    result = subprocess.run(
+        path, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="gbk"
+    )
+    if result.returncode == 1:
+        return {
+            "result": result.stdout,
+            "code": result.returncode,
+        }, 200
+    else:
+        return {
+            "result": result.stderr,
+            "code": result.returncode,
+        }, 200
+
+
 @app.route("/upload", methods=["POST"])
 def upload_file():
     try:
@@ -134,10 +154,13 @@ if __name__ == "__main__":
             else:
                 base_path = str(argv_path.parent)
 
-    ip_list = socket.gethostbyname_ex(socket.gethostname())[-1]  # ('hostname', [], [ip list])
+    ip_list = socket.gethostbyname_ex(socket.gethostname())[
+        -1
+    ]  # ('hostname', [], [ip list])
     print("http://127.0.0.1:5000/")
     for ip in ip_list:
         print("http://" + ip + ":5000/")
+
     if Path(base_path).exists():
         print(f"监视目录为: {base_path}")
         app.run(debug=False, host="0.0.0.0")  # 默认端口 port=5000
