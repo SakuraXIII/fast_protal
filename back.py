@@ -134,11 +134,12 @@ if __name__ == "__main__":
             else:
                 base_path = str(argv_path.parent)
 
-    res = socket.gethostbyname(socket.gethostname())
+    ip_list = socket.gethostbyname_ex(socket.gethostname())[-1]  # ('hostname', [], [ip list])
     print("http://127.0.0.1:5000/")
-    print("http://" + res + ":5000/")
+    for ip in ip_list:
+        print("http://" + ip + ":5000/")
     if Path(base_path).exists():
         print(f"监视目录为: {base_path}")
-        app.run(debug=True, host="0.0.0.0")  # 默认端口 port=5000
+        app.run(debug=False, host="0.0.0.0")  # 默认端口 port=5000
     else:
         raise FileNotFoundError(f"没有该目录: {base_path}")
