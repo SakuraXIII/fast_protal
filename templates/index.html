@@ -43,13 +43,13 @@
 
         {% for file in files %}
         <li class="list-group-item">
-          <a href=" /?name={{file}}">{{file.name}}</a>
+          <a href="{{ url_for('index', name=file|urlencode) }}">{{file.name}}</a>
           {% if file.is_file()%} &nbsp;&nbsp;{% with size=(file.stat().st_size / 1024) %}
           <span>{{size|round(2)|string +'KB' if size < 1024 else (size / 1024)|round(2)|string +'MB'}}</span>
           {% endwith %} &nbsp;&nbsp;
-          <a class="badge text-bg-primary" href="/?name={{file}}" download>下载</a>
+          <a class="badge text-bg-primary" href="{{ url_for('index', name=file|urlencode) }}" download>下载</a>
           {% endif %}
-          <a class="badge text-bg-danger" href="/del?path={{file}}">删除</a>
+          <a class="badge text-bg-danger" href="{{ url_for('del_file', path=file|urlencode) }}">删除</a>
         </li>
         {% endfor %}
       </ol>

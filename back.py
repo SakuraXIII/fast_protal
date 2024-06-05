@@ -15,6 +15,7 @@ from flask import (
     session,
     send_file,
 )
+from urllib.parse import unquote
 import logging
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
@@ -41,7 +42,8 @@ def add_header(r):
 @app.route("/")
 def index():
     try:
-        name = request.args["name"]
+        name = request.args.get("name","")
+        name = unquote(name)
         if name == "../":
             path = Path(session["current_path"]).parent
         elif name == ".":
@@ -78,7 +80,9 @@ def get_file(path):
 
 @app.route("/del")
 def del_file():
-    path = Path(request.args.get("path"))
+    path = request.args.get("path","")
+    path = unquote(path)
+    path = Path(path)
     if path.exists():
         if path.is_file():
             path.unlink()
