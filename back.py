@@ -19,7 +19,6 @@ from urllib.parse import unquote
 import logging
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
-app.config["MAX_CONTENT_PATH"] = 1024 * 1024 * 1024 * 5  # 指定最大文件大小，单位为字节
 # Flask 的 Session 是通过加密后放到 Cookie 中的，
 # 所以在使用 Session 模块时就一定要配置 SECRET_KEY 全局宏用于加密。
 app.config["SECRET_KEY"] = "123456"
@@ -42,7 +41,7 @@ def add_header(r):
 @app.route("/")
 def index():
     try:
-        name = request.args.get("name","")
+        name = request.args.get("name", "")
         name = unquote(name)
         if name == "../":
             path = Path(session["current_path"]).parent
@@ -80,7 +79,7 @@ def get_file(path):
 
 @app.route("/del")
 def del_file():
-    path = request.args.get("path","")
+    path = request.args.get("path", "")
     path = unquote(path)
     path = Path(path)
     if path.exists():
@@ -120,32 +119,39 @@ def upload_file():
         file_size = request.form["dztotalfilesize"]  # 文件总大小
         current_chunk = int(request.form["dzchunkindex"])  # 当前分块索引
         total_chunks = int(request.form["dztotalchunkcount"])  # 总块数
-        if save_path.exists() and current_chunk == 0:
-            return {"result": "已经存在该文件"}, 400
+
+        if save_path.exists():
+            if save_path.stat().st_size == int(file_size):
+                if current_chunk == 0:
+                    print("already exists")
+                return {"result": "文件已经存在", "code": 111}, 403
+            elif current_chunk == 0:
+                save_path.unlink()
+
         with open(save_path, "ab") as f:
             f.seek(int(request.form["dzchunkbyteoffset"]))  # 字节偏移量
             f.write(file.stream.read())
 
         if current_chunk + 1 == total_chunks:  # 传输最后一个块
             if Path(save_path).stat().st_size != int(file_size):
-                return {"result": "保存文件大小与实际大小不匹配"}, 500
+                return {"result": "保存文件大小与实际大小不匹配", "code": 500}, 500
             else:
                 print(f"File {file.filename} has been uploaded successfully")
         else:
             print(f"文件 {file.filename}-{current_chunk + 1}/{total_chunks}")
-        return {"result": "上传成功"}, 200
+        return {"result": "上传成功", "code": 200}, 200
 
     except KeyError as ke:
         print(ke)
-        return {"result": "error"}, 400
+        return {"result": "键错误", "code": 400}, 400
     except OSError as oe:
         print(oe)
         save_path.unlink() if save_path.exists() else ...
-        return {"result": "文件保存读写错误"}, 400
+        return {"result": "文件保存读写错误", "code": 500}, 500
     except Exception as e:
         print(e)
         save_path.unlink() if save_path.exists() else ...
-        return {"result": "error"}, 400
+        return {"result": "服务器错误", "code": 500}, 500
 
 
 if __name__ == "__main__":
@@ -157,7 +163,7 @@ if __name__ == "__main__":
                 base_path = str(argv_path)
             else:
                 base_path = str(argv_path.parent)
-
+    # base_path = r"F:\20250518_000837"
     ip_list = socket.gethostbyname_ex(socket.gethostname())[
         -1
     ]  # ('hostname', [], [ip list])
@@ -165,8 +171,9 @@ if __name__ == "__main__":
     for ip in ip_list:
         print("http://" + ip + ":5000/")
 
-    if Path(base_path).exists():
-        print(f"监视目录为: {base_path}")
-        app.run(debug=False, host="0.0.0.0")  # 默认端口 port=5000
-    else:
-        raise FileNotFoundError(f"没有该目录: {base_path}")
+    if not Path(base_path).exists():
+        Path(base_path).mkdir(parents=True, exist_ok=True)
+        print(f"没有该目录: {base_path}，已创建")
+
+    print(f"监视目录为: {base_path}")
+    app.run(debug=True, host="0.0.0.0", port=5000)  # 默认端口 port=5000

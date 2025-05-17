@@ -32,7 +32,7 @@ var myDropzone = new Dropzone("#dropfile", {
   chunking: true,
   forceChunking: true,
   chunkSize: 1024 * 1024 * 20, // 20MB
-  maxFilesize: 1024 * 1024 * 1024 * 5, // 最大5GB文件
+  maxFilesize: 1024 * 1024 * 1024 * 10, // 最大10GB文件
   autoProcessQueue: false, // 拖入文件立即自动上传
   parallelUploads: 1,
   dictDefaultMessage: "拖动文件至此或者点击上传",
@@ -116,18 +116,37 @@ var myDropzone = new Dropzone("#dropfile", {
         location.reload();
       }, 2000);
     });
-    this.on("error", function (file, data) {
+    this.on("error", function (file, err_obj_or_msg) {
       // 上传失败触发的事件
-      document.querySelector(".progress-inner").classList.add("bg-danger");
-      document.querySelector(".progress-inner").style.width = 100 + "%";
-      document.querySelector(".progress-inner").innerHTML = "error!";
-      this.removeAllFiles(); // true 删除所有文件，包括正在上传的文件
-      setTimeout(() => {
-        location.reload();
-      }, 2000);
+      console.log(file, err_obj_or_msg);
+      if (err_obj_or_msg.code != 111 && err_obj_or_msg.result != "文件已经存在") {
+        document.querySelector(".progress-inner").classList.add("bg-danger");
+        document.querySelector(".progress-inner").style.width = 100 + "%";
+        document.querySelector(".progress-inner").innerHTML = err_obj_or_msg?.result ?? err_obj_or_msg;
+        const newElement = document.createElement("div");
+        newElement.textContent = file.name + " 上传失败 " + err_obj_or_msg?.result ?? err_obj_or_msg;
+        newElement.className = "alert alert-danger";
+        document.querySelector("#upload-file").appendChild(newElement);
+      }
+      this.removeFile(file);
+      if (this.getQueuedFiles().length != 0) {
+        this.processQueue();
+        start = performance.now();
+      }
     });
   },
 });
+
+window.addEventListener('beforeunload', function (e) {
+  e = e || window.event;
+  if (e) {
+    e.returnValue = '关闭提示';
+  }
+
+  // Chrome, Safari, Firefox 4+, Opera 12+ , IE 9+
+  return '';
+
+})
 
 document.querySelector("#cmd-btn").addEventListener("click", () => {
   cmd = document.querySelector("#cmd").value;
